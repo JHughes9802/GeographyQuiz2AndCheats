@@ -21,6 +21,7 @@ namespace GeographyQuiz2
             "Everest",
             "Chile"};
 
+        // I made all these variables global because I don't have a good way to pass these between methods
         private int QuestionNumber = -1; // Counter to keep track of the current question/answer
         private int Score = 0;
         private int TimesCheated = 0; // A counter to display at the end how many questions the user cheated on
@@ -48,6 +49,7 @@ namespace GeographyQuiz2
             {
                 lblQuestion.Text = Questions[QuestionNumber];
                 // QuestionNumber++ can fit here if it starts at 0 and the below statement has + 1 removed, but it looks strange
+
                 // I added this so the user can know how far they are in the quiz - it's nice for long quizzes
                 lblQuestionNumber.Text = $"Question: {QuestionNumber + 1}/{Questions.Count}";
 
@@ -58,29 +60,29 @@ namespace GeographyQuiz2
 
             else
             {
-                QuizOver();
+                btnSubmitAnswer.Enabled = false;
+                btnCheat.Enabled = false;
+
+                EndMessage();
 
                 Close();
             }
         }
 
-        // I created the QuizOver method because there was too much unrelated code in ShowNextQuestion
+        /* I originally created the QuizOver method because there was too much unrelated 
+         * code in ShowNextQuestion, but now the EndMessage method handles everything
+
         private void QuizOver()
         {
-            btnSubmitAnswer.Enabled = false;
-            btnCheat.Enabled = false;
-
-            // Given how short the quiz is, I felt it proper to include seconds
-            TimeSpan timeTaken = DateTime.Now - startTime;
-            int minutes = timeTaken.Minutes;
-            int seconds = timeTaken.Seconds;
-
             /* I use an if/else because it's improper to have the line
              * "Incorrect Answers" display if they got them all correct */
             /* I don't like having 4 different chunks of code with barely different MessageBox
              * statements, but I don't think there's a simple solution given what we've been taught.
              * What's worse, this would be 6 statements if I accounted for "else if (TimesCheated == 1)"
              * and changed the Message to say "You cheated {TimesCheated} time" */
+
+             /* The commented code below is the code I used to have, but I felt a need to improve it
+
             if (Score == Questions.Count)
             {
                 if (TimesCheated == 0)
@@ -97,10 +99,11 @@ namespace GeographyQuiz2
                         $"\nYou cheated {TimesCheated} times",
                         "Quiz Over!");
                 }
-            }
+            } */
 
             /* This formatting works fine since it's a short quiz, but it'd need to be changed when
              * there's more than 5 questions because the message box could get cut off */
+             /*
             else
             {
                 if (TimesCheated == 0)
@@ -122,6 +125,79 @@ namespace GeographyQuiz2
                         "Quiz Over!");
                 }
             }
+        } */
+
+        /* The code I used to build the message for the final MessageBox. While it's more lines
+         * of code than above, it accounts for more scenarios and is easier to adjust if I were
+         * to modify the code. Also, I feel it's easier to read on the coding side */
+        private void EndMessage()
+        {
+            // Given how short the quiz is, I felt it proper to include seconds
+            TimeSpan timeTaken = DateTime.Now - startTime;
+            int minutes = timeTaken.Minutes;
+            int seconds = timeTaken.Seconds;
+
+            StringBuilder EndMessageBuilder = new StringBuilder();
+
+            EndMessageBuilder.Append("Your score is ");
+            EndMessageBuilder.Append(Score);
+            EndMessageBuilder.Append("\nYou took ");
+
+            /* I decided to account for words referring to a single digit to lack the plural "s"
+             * and, given the length of the quiz, only adding the minute(s) if it's applicable
+             * because I knew I could. As simple as this is, I find joy in attention to detail */
+            if (minutes > 0)
+            {
+                EndMessageBuilder.Append(minutes);
+
+                if (minutes == 1)
+                {
+                    EndMessageBuilder.Append(" minute ");
+                }
+
+                else
+                {
+                    EndMessageBuilder.Append(" minutes ");
+                }
+
+                EndMessageBuilder.Append("and ");
+            }
+
+            EndMessageBuilder.Append(seconds);
+
+            if (seconds == 1)
+            {
+                EndMessageBuilder.Append(" second to finish");
+            }
+
+            else
+            {
+                EndMessageBuilder.Append(" seconds to finish");
+            }
+
+            if (TimesCheated > 0)
+            {
+                EndMessageBuilder.Append("\nYou cheated ");
+                EndMessageBuilder.Append(TimesCheated);
+
+                if (TimesCheated == 1)
+                {
+                    EndMessageBuilder.Append(" time");
+                }
+
+                else
+                {
+                    EndMessageBuilder.Append(" times");
+                }
+            }
+
+            if (Score < Questions.Count)
+            {
+                EndMessageBuilder.Append("\n\nIncorrect answers");
+                EndMessageBuilder.Append(IncorrectAnswersBuilder); // I didn't know I could so easily combine MessageBuilders
+            }
+
+            MessageBox.Show(EndMessageBuilder.ToString(), "Quiz Over!");
         }
         
         private void CheckAnswer()
@@ -138,6 +214,7 @@ namespace GeographyQuiz2
             {
                 MessageBox.Show("Correct!", "Result");
                 Score++;
+
                 // I added this so the user can know their total score during the quiz
                 lblScore.Text = $"Score: {Score}";
             }
@@ -156,15 +233,14 @@ namespace GeographyQuiz2
             }
         }
 
-        // A simple method to check if the user cheated before clicking btnSubmitAnswer
+        // A simple method to check if the user clicked btnCheat before clicking btnSubmitAnswer
         private void CheckIfCheated()
         {
             if (CheatClicked)
             {
                 TimesCheated++;
+                CheatClicked = false;
             }
-
-            CheatClicked = false;
         }
 
         private void btnSubmitAnswer_Click(object sender, EventArgs e)
@@ -202,7 +278,7 @@ namespace GeographyQuiz2
             if (cheatFormResult == DialogResult.OK)
             {
                 txtAnswer.Text = Answers[QuestionNumber];
-                btnSubmitAnswer.Focus();
+                btnSubmitAnswer.Focus(); // I could arguably have this click btnSubmitAnswer for the user instead
             }
         }
     }

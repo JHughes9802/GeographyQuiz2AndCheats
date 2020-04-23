@@ -13,7 +13,7 @@ namespace GeographyQuiz2
     public partial class CheatForm : Form
     {
 
-        // Not much to comment on here when all I did was add 4 lines of code
+        // Not much to comment on here when all I did was add 4 short lines of code
         public CheatForm()
         {
             InitializeComponent();
